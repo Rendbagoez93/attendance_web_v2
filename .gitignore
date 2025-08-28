@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Django
+*.log
+db.sqlite3
+media/
+staticfiles/
+
+# VS Code
+.vscode/
+
+# Environment
+.env
+.venv/
+venv/
+ENV/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python dependency management
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Pytest
+.cache/
+
+# Coverage reports
+htmlcov/
+.coverage
+.tox/
+
+# Lock files
+uv.lock
+
+# Ignore migrations cache
+**/migrations/__pycache__/
+
+# Ignore compiled files in all subfolders
+**/__pycache__/
+
+# Ignore Jupyter Notebooks checkpoints
+.ipynb_checkpoints/
