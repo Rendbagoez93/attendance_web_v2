@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Profile - {{ employee.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.profile-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    margin: 0 auto 1rem;
+}
+
+.profile-card {
+    border: none;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+}
+
+.info-item {
+    padding: 1rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 0.25rem;
+}
+
+.info-value {
+    color: #333;
+    font-size: 1.1rem;
+}
+
+.badge-role {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+}
+
+.edit-btn {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-header">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <div class="profile-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h2 class="mb-2">{{ employee.get_full_name }}</h2>
+                <p class="mb-1">{{ employee.employee_id }}</p>
+                {% if employee.role == 'manager' %}
+                    <span class="badge badge-role bg-warning text-dark">{{ employee.get_role_display }}</span>
+                {% elif employee.role == 'hr_admin' %}
+                    <span class="badge badge-role bg-info">{{ employee.get_role_display }}</span>
+                {% else %}
+                    <span class="badge badge-role bg-primary">{{ employee.get_role_display }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card profile-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-user-circle me-2"></i>Personal Information
+                    </h5>
+                    <a href="{% url 'employee_profile_edit' %}" class="btn btn-primary edit-btn">
+                        <i class="fas fa-edit me-2"></i>Edit Profile
+                    </a>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-user me-2"></i>Full Name
+                                </div>
+                                <div class="info-value">{{ employee.get_full_name }}</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-envelope me-2"></i>Email Address
+                                </div>
+                                <div class="info-value">{{ employee.user.email|default:"Not provided" }}</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-phone me-2"></i>Phone Number
+                                </div>
+                                <div class="info-value">{{ employee.phone_number|default:"Not provided" }}</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-map-marker-alt me-2"></i>Address
+                                </div>
+                                <div class="info-value">
+                                    {% if employee.address %}
+                                        {{ employee.address|linebreaks }}
+                                    {% else %}
+                                        Not provided
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-id-badge me-2"></i>Employee ID
+                                </div>
+                                <div class="info-value">{{ employee.employee_id }}</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-building me-2"></i>Department
+                                </div>
+                                <div class="info-value">{{ employee.get_department_display }}</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-user-tie me-2"></i>Role
+                                </div>
+                                <div class="info-value">{{ employee.get_role_display }}</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-calendar-alt me-2"></i>Hire Date
+                                </div>
+                                <div class="info-value">{{ employee.hire_date|date:"F d, Y" }}</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-clock me-2"></i>Years of Service
+                                </div>
+                                <div class="info-value">{{ employee.years_of_service|floatformat:1 }} years</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-toggle-on me-2"></i>Status
+                                </div>
+                                <div class="info-value">
+                                    {% if employee.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Account Information Card -->
+            <div class="card profile-card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-key me-2"></i>Account Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-user-lock me-2"></i>Username
+                                </div>
+                                <div class="info-value">{{ employee.user.username }}</div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-calendar-plus me-2"></i>Account Created
+                                </div>
+                                <div class="info-value">{{ employee.created_at|date:"F d, Y g:i A" }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Last Login
+                                </div>
+                                <div class="info-value">
+                                    {% if employee.user.last_login %}
+                                        {{ employee.user.last_login|date:"F d, Y g:i A" }}
+                                    {% else %}
+                                        Never logged in
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="info-item">
+                                <div class="info-label">
+                                    <i class="fas fa-edit me-2"></i>Last Updated
+                                </div>
+                                <div class="info-value">{{ employee.updated_at|date:"F d, Y g:i A" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="{% url 'dashboard' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

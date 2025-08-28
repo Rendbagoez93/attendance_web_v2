@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Employee Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">Employee Management</h3>
+                    <a href="{% url 'employee_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Employee
+                    </a>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Search and Filter Form -->
+                    <form method="get" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-4">
+                                {{ form.search }}
+                            </div>
+                            <div class="col-md-2">
+                                {{ form.department }}
+                            </div>
+                            <div class="col-md-2">
+                                {{ form.role }}
+                            </div>
+                            <div class="col-md-2">
+                                {{ form.is_active }}
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-secondary w-100">
+                                    <i class="fas fa-search"></i> Search
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <!-- Bulk Actions -->
+                    <form id="bulk-form" method="post" action="{% url 'employee_bulk_actions' %}">
+                        {% csrf_token %}
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <select name="action" class="form-control" style="width: auto; display: inline-block;">
+                                    <option value="">Bulk Actions</option>
+                                    <option value="activate">Activate Selected</option>
+                                    <option value="deactivate">Deactivate Selected</option>
+                                </select>
+                                <button type="button" class="btn btn-warning" onclick="confirmBulkAction()">
+                                    Apply
+                                </button>
+                            </div>
+                            <div class="col-md-6 text-right">
+                                <small class="text-muted">{{ page_obj.paginator.count }} total employees</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Employee Table -->
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>
+                                            <input type="checkbox" id="select-all">
+                                        </th>
+                                        <th>Employee ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Department</th>
+                                        <th>Role</th>
+                                        <th>Hire Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for employee in employees %}
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" name="employee_ids" value="{{ employee.employee_id }}" class="employee-checkbox">
+                                        </td>
+                                        <td>{{ employee.employee_id }}</td>
+                                        <td>{{ employee.get_full_name }}</td>
+                                        <td>{{ employee.user.email }}</td>
+                                        <td>{{ employee.get_department_display_name }}</td>
+                                        <td>{{ employee.get_role_display_name }}</td>
+                                        <td>{{ employee.hire_date|date:"M d, Y" }}</td>
+                                        <td>
+                                            {% if employee.is_active %}
+                                                <span class="badge badge-success">Active</span>
+                                            {% else %}
+                                                <span class="badge badge-danger">Inactive</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'employee_detail' employee.employee_id %}" 
+                                                   class="btn btn-sm btn-info" title="View">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{% url 'employee_edit' employee.employee_id %}" 
+                                                   class="btn btn-sm btn-warning" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                {% if employee.is_active %}
+                                                    <form method="post" action="{% url 'employee_delete' employee.employee_id %}" 
+                                                          style="display: inline;" 
+                                                          onsubmit="return false;">
+                                                        {% csrf_token %}
+                                                        <button type="button" class="btn btn-sm btn-danger" title="Deactivate"
+                                                                onclick="confirmDelete(this, '{{ employee.get_full_name|default:employee.user.username }}', 'deactivate')">
+                                                            <i class="fas fa-user-times"></i>
+                                                        </button>
+                                                    </form>
+                                                {% else %}
+                                                    <form method="post" action="{% url 'employee_activate' employee.employee_id %}" 
+                                                          style="display: inline;"
+                                                          onsubmit="return false;">
+                                                        {% csrf_token %}
+                                                        <button type="button" class="btn btn-sm btn-success" title="Activate"
+                                                                onclick="confirmActivate(this, '{{ employee.get_full_name|default:employee.user.username }}')">
+                                                            <i class="fas fa-user-check"></i>
+                                                        </button>
+                                                    </form>
+                                                {% endif %}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="9" class="text-center">No employees found.</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </form>
+                    
+                    <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
+                    <nav aria-label="Employee pagination">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">Previous</a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.role %}&role={{ request.GET.role }}{% endif %}{% if request.GET.is_active %}&is_active={{ request.GET.is_active }}{% endif %}">Next</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('select-all').addEventListener('change', function() {
+    const checkboxes = document.querySelectorAll('.employee-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = this.checked;
+    });
+});
+
+// Employee-specific confirmation functions
+function confirmDelete(button, employeeName, action = 'deactivate') {
+    const form = button.closest('form');
+    
+    showConfirmation({
+        title: `${action.charAt(0).toUpperCase() + action.slice(1)} Employee`,
+        message: `Are you sure you want to ${action} ${employeeName}? This will prevent them from accessing the system.`,
+        confirmText: action.charAt(0).toUpperCase() + action.slice(1),
+        type: 'danger',
+        onConfirm: function() {
+            showNotification(`${action.charAt(0).toUpperCase() + action.slice(1)}ing ${employeeName}...`, 'info', 2000);
+            setTimeout(() => {
+                form.submit();
+            }, 500);
+        }
+    });
+}
+
+function confirmActivate(button, employeeName) {
+    const form = button.closest('form');
+    
+    showConfirmation({
+        title: 'Activate Employee',
+        message: `Are you sure you want to activate ${employeeName}? This will allow them to access the system again.`,
+        confirmText: 'Activate',
+        type: 'success',
+        onConfirm: function() {
+            showNotification(`Activating ${employeeName}...`, 'info', 2000);
+            setTimeout(() => {
+                form.submit();
+            }, 500);
+        }
+    });
+}
+
+function confirmBulkAction() {
+    const form = document.getElementById('bulk-form');
+    const action = form.querySelector('[name="action"]').value;
+    const checkedBoxes = form.querySelectorAll('.employee-checkbox:checked');
+    
+    if (!action) {
+        showNotification('Please select an action first.', 'warning');
+        return;
+    }
+    
+    if (checkedBoxes.length === 0) {
+        showNotification('Please select at least one employee.', 'warning');
+        return;
+    }
+    
+    const actionText = action === 'activate' ? 'activate' : 'deactivate';
+    const count = checkedBoxes.length;
+    
+    showConfirmation({
+        title: `Bulk ${actionText.charAt(0).toUpperCase() + actionText.slice(1)}`,
+        message: `Are you sure you want to ${actionText} ${count} employee${count > 1 ? 's' : ''}? This action will affect their system access.`,
+        confirmText: `${actionText.charAt(0).toUpperCase() + actionText.slice(1)} ${count} Employee${count > 1 ? 's' : ''}`,
+        type: action === 'activate' ? 'success' : 'danger',
+        onConfirm: function() {
+            showNotification(`${actionText.charAt(0).toUpperCase() + actionText.slice(1)}ing ${count} employee${count > 1 ? 's' : ''}...`, 'info', 2000);
+            setTimeout(() => {
+                form.submit();
+            }, 500);
+        }
+    });
+}
+</script>
+{% endblock %}

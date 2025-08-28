@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}NovaTech Corporation Attendance System{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/login.css' %}" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="login-content">
+    <!-- Company Branding -->
+    <div class="company-branding">
+        <img src="{% static 'images/novatech-logo.png' %}" alt="NovaTech Corporation" class="company-logo">
+        <h1 class="company-name">NovaTech</h1>
+        <p class="company-subtitle">Employee Attendance Management</p>
+        <!-- Current Time Display -->
+        <div class="current-time">
+            <small>Current Time: <span class="time-value" id="currentTime"></span></small>
+        </div>
+    </div>
+
+    <!-- Login Card -->
+    {% if user.is_authenticated %}
+    <div class="card login-card mx-auto">
+        <div class="card-header login-card-header">
+            <h4><i class="fas fa-user-check"></i> Already Logged In</h4>
+        </div>
+        <div class="card-body text-center">
+            <div class="mb-3">
+                <i class="fas fa-user-circle fa-3x text-primary mb-3"></i>
+                <h5>Welcome back, {{ user.get_full_name|default:user.username }}!</h5>
+                <p class="text-muted">You are currently logged in to the system.</p>
+            </div>
+            <div class="d-grid gap-2">
+                <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                    <i class="fas fa-tachometer-alt me-2"></i>Continue to Dashboard
+                </a>
+                <a href="{% url 'logout' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-sign-out-alt me-2"></i>Logout & Switch Account
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card login-card mx-auto">
+        <div class="card-header login-card-header">
+            <h4><i class="fas fa-shield-alt"></i> Secure Login</h4>
+        </div>
+        <div class="card-body login-form">
+            <form method="post" id="loginForm" novalidate>
+                {% csrf_token %}
+                <!-- Username Field -->
+                <div class="mb-3">
+                    <label for="username" class="form-label">
+                        <i class="fas fa-user me-1"></i>Username
+                    </label>
+                    <div class="input-group login-input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-user"></i>
+                        </span>
+                        <input type="text" 
+                               class="login-input" 
+                               id="username" 
+                               name="username" 
+                               required 
+                               placeholder="Enter your username"
+                               autocomplete="username">
+                    </div>
+                </div>
+                <!-- Password Field -->
+                <div class="mb-3">
+                    <label for="password" class="form-label">
+                        <i class="fas fa-lock me-1"></i>Password
+                    </label>
+                    <div class="input-group login-input-group">
+                        <span class="input-group-text">
+                            <i class="fas fa-lock"></i>
+                        </span>
+                        <input type="password" 
+                               class="login-input" 
+                               id="password" 
+                               name="password" 
+                               required 
+                               placeholder="Enter your password"
+                               autocomplete="current-password">
+                    </div>
+                </div>
+                <!-- Remember Me Checkbox (will be added by JS if needed) -->
+                <div class="remember-checkbox" id="rememberContainer" style="display: none;">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="rememberUsername">
+                        <label class="form-check-label" for="rememberUsername">
+                            <i class="fas fa-check-circle me-1"></i>Remember username
+                        </label>
+                    </div>
+                </div>
+                <!-- Login Button -->
+                <div class="d-grid">
+                    <button type="submit" class="btn login-btn">
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        <span>Sign In to NovaTech</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+        <div class="card-footer login-card-footer">
+            <small>
+                <i class="fas fa-shield-alt me-1"></i>
+                Secured by NovaTech Corporation &copy; 2025
+            </small>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Demo Credentials -->
+    {% if not user.is_authenticated %}
+    <div class="card demo-card mx-auto">
+        <div class="card-header demo-card-header">
+            <h6 class="demo-title">
+                <i class="fas fa-info-circle me-2"></i>Quick Access Demo Accounts
+            </h6>
+        </div>
+        <div class="card-body demo-card-body">
+            <div class="credential-item" data-username="john.smith" data-password="password123">
+                <span class="badge badge-manager">Manager</span>
+                <div class="flex-grow-1">
+                    <strong>john.smith</strong>
+                    <small class="d-block text-muted">Full system access</small>
+                </div>
+                <i class="fas fa-mouse-pointer text-muted"></i>
+            </div>
+            <div class="credential-item" data-username="sarah.johnson" data-password="password123">
+                <span class="badge badge-hr">HR Admin</span>
+                <div class="flex-grow-1">
+                    <strong>sarah.johnson</strong>
+                    <small class="d-block text-muted">HR management</small>
+                </div>
+                <i class="fas fa-mouse-pointer text-muted"></i>
+            </div>
+            <div class="credential-item" data-username="mike.davis" data-password="password123">
+                <span class="badge badge-staff">Staff</span>
+                <div class="flex-grow-1">
+                    <strong>mike.davis</strong>
+                    <small class="d-block text-muted">Employee access</small>
+                </div>
+                <i class="fas fa-mouse-pointer text-muted"></i>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/login.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}NovaTech Corp. Dashboard - Employee Attendance System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>NovaTech Corp. Dashboard</h2>
+            <span class="badge bg-primary role-badge">Staff Access</span>
+        </div>
+    </div>
+</div>
+
+<!-- Welcome Card -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-primary">
+            <div class="card-body">
+                <h5 class="card-title">Welcome, {{ employee.user.get_full_name|default:employee.user.username }}!</h5>
+                <p class="card-text">
+                    <strong>Employee ID:</strong> {{ employee.employee_id }}<br>
+                    <strong>Department:</strong> {{ department_name }}<br>
+                    <strong>Role:</strong> {{ employee.get_role_display }}<br>
+                    <strong>Hire Date:</strong> {{ employee.hire_date|date:"M d, Y" }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-success text-white dashboard-card">
+            <div class="card-body text-center">
+                <h5>Check In</h5>
+                {% if employee_attendance and employee_attendance.check_in_time %}
+                    <p class="mb-2">Checked in: {{ employee_attendance.check_in_time|time:"H:i" }}</p>
+                    {% if employee_attendance.is_late %}
+                        <span class="badge bg-warning">Late</span>
+                    {% else %}
+                        <span class="badge bg-light text-dark">On Time</span>
+                    {% endif %}
+                {% else %}
+                    <button class="btn btn-light btn-sm" onclick="checkIn()" id="checkInBtn">Clock In</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white dashboard-card">
+            <div class="card-body text-center">
+                <h5>Check Out</h5>
+                {% if employee_attendance and employee_attendance.check_out_time %}
+                    <p class="mb-2">Checked out: {{ employee_attendance.check_out_time|time:"H:i" }}</p>
+                    <span class="badge bg-light text-dark">Completed</span>
+                {% elif employee_attendance and employee_attendance.check_in_time %}
+                    <button class="btn btn-light btn-sm" onclick="checkOut()" id="checkOutBtn">Clock Out</button>
+                {% else %}
+                    <button class="btn btn-light btn-sm" disabled>Check In First</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white dashboard-card">
+            <div class="card-body text-center">
+                <h5>Leave Request</h5>
+                <button class="btn btn-light btn-sm">Request</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white dashboard-card">
+            <div class="card-body text-center">
+                <h5>My Reports</h5>
+                <button class="btn btn-light btn-sm">View</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Additional Quick Actions Row -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-info text-white dashboard-card">
+            <div class="card-body text-center">
+                <h5><i class="fas fa-user-circle me-2"></i>My Profile</h5>
+                <a href="{% url 'employee_profile_view' %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-eye me-1"></i>View Profile
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-secondary text-white dashboard-card">
+            <div class="card-body text-center">
+                <h5><i class="fas fa-edit me-2"></i>Update Info</h5>
+                <a href="{% url 'employee_profile_edit' %}" class="btn btn-light btn-sm">
+                    <i class="fas fa-edit me-1"></i>Edit Profile
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-dark text-white dashboard-card">
+            <div class="card-body text-center">
+                <h5><i class="fas fa-clock me-2"></i>Attendance</h5>
+                <button class="btn btn-light btn-sm">
+                    <i class="fas fa-calendar me-1"></i>View History
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-purple text-white dashboard-card" style="background-color: #6f42c1 !important;">
+            <div class="card-body text-center">
+                <h5><i class="fas fa-cog me-2"></i>Settings</h5>
+                <button class="btn btn-light btn-sm">
+                    <i class="fas fa-tools me-1"></i>Preferences
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Personal Information -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Personal Information</h5>
+                <a href="{% url 'employee_profile_view' %}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-user me-1"></i>View Full Profile
+                </a>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Full Name:</strong></td>
+                        <td>{{ employee.user.get_full_name|default:employee.user.username }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Email:</strong></td>
+                        <td>{{ employee.user.email }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Phone:</strong></td>
+                        <td>{{ employee.phone_number|default:"Not provided" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Address:</strong></td>
+                        <td>{{ employee.address|default:"Not provided" }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Work Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Employee ID:</strong></td>
+                        <td>{{ employee.employee_id }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Department:</strong></td>
+                        <td>{{ department_name }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Position:</strong></td>
+                        <td>{{ employee.get_role_display }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Hire Date:</strong></td>
+                        <td>{{ employee.hire_date|date:"M d, Y" }}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Department Colleagues -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Department Colleagues ({{ department_name }})</h5>
+            </div>
+            <div class="card-body">
+                {% if colleagues %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Employee ID</th>
+                                <th>Name</th>
+                                <th>Role</th>
+                                <th>Email</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for colleague in colleagues %}
+                            <tr>
+                                <td>{{ colleague.employee_id }}</td>
+                                <td>{{ colleague.user.get_full_name|default:colleague.user.username }}</td>
+                                <td>
+                                    {% if colleague.role == 'manager' %}
+                                        <span class="badge bg-warning">{{ colleague.get_role_display }}</span>
+                                    {% elif colleague.role == 'hr_admin' %}
+                                        <span class="badge bg-info">{{ colleague.get_role_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-primary">{{ colleague.get_role_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ colleague.user.email }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="text-muted">No other colleagues in your department.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Container -->
+<div id="notificationContainer"></div>
+
+{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/employee_dashboard.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const csrfToken = '{{ csrf_token }}';
+const checkInUrl = '{% url "check_in" %}';
+const checkOutUrl = '{% url "check_out" %}';
+</script>
+<script src="{% static 'js/employee_dashboard.js' %}"></script>
+{% endblock %}

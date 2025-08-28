@@ -1,0 +1,154 @@
+/* Base styles for the entire application */
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.dashboard-card {
+    transition: transform 0.2s;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-2px);
+}
+
+.role-badge {
+    font-size: 0.8em;
+}
+
+/* Login page background */
+.login-background { 
+    background: linear-gradient(135deg, #ff6600 0%, #333748 100%);
+    min-height: 100vh;
+    position: relative;
+}
+
+.login-background::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 20% 80%, rgba(255, 102, 0, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(51, 55, 72, 0.4) 0%, transparent 50%),
+        radial-gradient(circle at 40% 40%, rgba(255, 102, 0, 0.2) 0%, transparent 50%);
+}
+
+.login-content {
+    position: relative;
+    z-index: 1;
+}
+
+/* Common utility classes */
+.text-primary-custom {
+    color: #667eea !important;
+}
+
+.bg-primary-custom {
+    background-color: #667eea !important;
+}
+
+.bg-secondary-custom {
+    background-color: #333748 !important;
+}
+
+.border-primary-custom {
+    border-color: #667eea !important;
+}
+
+/* Animation classes */
+.fade-in {
+    animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.slide-up {
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* Ripple effect for buttons */
+.btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(0);
+    animation: ripple-animation 0.6s linear;
+    pointer-events: none;
+}
+
+@keyframes ripple-animation {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+/* Form validation styles */
+.form-control.is-valid {
+    border-color: #28a745;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2328a745' d='m2.3 6.73.13-.02L6.3 2.84c.04-.05-.03-.1-.08-.06l-3.2 3.2c-.02.02-.05.02-.07 0L1.97 4.98c-.04-.05-.1.02-.06.08l.39.67z'/%3e%3c/svg%3e");
+}
+
+.form-control.is-invalid {
+    border-color: #dc3545;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath d='m5.8 5.8l.4.4.4-.4m0 .4l-.4.4.4.4'/%3e%3c/svg%3e");
+}
+
+/* Loading states */
+.btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.loading {
+    position: relative;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #ccc;
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .login-background {
+        padding: 1rem;
+    }
+    
+    .company-logo {
+        width: 80px !important;
+    }
+    
+    .company-name {
+        font-size: 1.5rem;
+    }
+}

@@ -1,0 +1,387 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}NovaTech Corp. Dashboard - Employee Attendance System{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/hr_dashboard.css' %}" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>NovaTech Corp. Dashboard</h2>
+            <span class="badge bg-info role-badge">HR/Admin Access</span>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Container -->
+<div id="notificationContainer"></div>
+
+<!-- Welcome Card -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-info">
+            <div class="card-body">
+                <h5 class="card-title">Welcome, {{ employee.user.get_full_name|default:employee.user.username }}!</h5>
+                <p class="card-text">
+                    <strong>Employee ID:</strong> {{ employee.employee_id }}<br>
+                    <strong>Department:</strong> {{ employee.get_department_display }}<br>
+                    <strong>Role:</strong> {{ employee.get_role_display }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- HR Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white dashboard-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5>Total Employees</h5>
+                        <h2>{{ total_employees }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white dashboard-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5>Present Today</h5>
+                        <h2>{{ present_count }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white dashboard-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5>Late Today</h5>
+                        <h2>{{ late_count }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white dashboard-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5>Absent Today</h5>
+                        <h2>{{ absent_count }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- HR Attendance Panel -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card border-info">
+            <div class="card-header bg-info text-white">
+                <h5>HR Attendance Panel</h5>
+            </div>
+            <div class="card-body text-center">
+                {% if employee_attendance and employee_attendance.check_in_time %}
+                    <p><strong>Checked In:</strong> {{ employee_attendance.check_in_time|time:"H:i" }}
+                    {% if employee_attendance.is_late %}
+                        <span class="badge bg-warning">Late</span>
+                    {% else %}
+                        <span class="badge bg-success">On Time</span>
+                    {% endif %}
+                    </p>
+                {% else %}
+                    <button class="btn btn-info" onclick="checkIn()">Check In</button>
+                {% endif %}
+                
+                {% if employee_attendance and employee_attendance.check_out_time %}
+                    <p><strong>Checked Out:</strong> {{ employee_attendance.check_out_time|time:"H:i" }}</p>
+                {% elif employee_attendance and employee_attendance.check_in_time %}
+                    <button class="btn btn-warning" onclick="checkOut()">Check Out</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Department Statistics -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Department Statistics</h5>
+            </div>
+            <div class="card-body">
+                {% if dept_stats %}
+                    {% for dept, count in dept_stats.items %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span><strong>{{ dept }}</strong></span>
+                            <span class="badge bg-primary">{{ count }} employee{{ count|pluralize }}</span>
+                        </div>
+                        <div class="progress mt-2" style="height: 10px;">
+                            {% widthratio count total_employees 100 as percentage %}
+                            <div class="progress-bar bg-primary" role="progressbar" 
+                                 style="width: {{ percentage }}%" 
+                                 aria-valuenow="{{ count }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="{{ total_employees }}"
+                                 title="{{ percentage }}% of total employees">
+                            </div>
+                        </div>
+                        <small class="text-muted">{{ percentage }}% of total workforce</small>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No department data available.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>HR Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'employee_create' %}" class="btn btn-primary" type="button">
+                        <i class="fas fa-user-plus"></i> Add New Employee
+                    </a>
+                    <a href="{% url 'employee_list' %}" class="btn btn-secondary" type="button">
+                        <i class="fas fa-users"></i> Manage Employees
+                    </a>
+                    <button class="btn btn-info" type="button">
+                        <i class="fas fa-chart-bar"></i> Generate Reports
+                    </button>
+                    <button class="btn btn-warning" type="button">
+                        <i class="fas fa-calendar-check"></i> Attendance Records
+                    </button>
+                    <button class="btn btn-success" type="button">
+                        <i class="fas fa-download"></i> Export Data
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Employee List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Employee Directory</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Employee ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Department</th>
+                                <th>Role</th>
+                                <th>Phone</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for emp in all_employees %}
+                            <tr>
+                                <td><strong>{{ emp.employee_id }}</strong></td>
+                                <td>{{ emp.user.get_full_name|default:emp.user.username }}</td>
+                                <td>{{ emp.user.email }}</td>
+                                <td>{{ emp.get_department_display }}</td>
+                                <td>
+                                    {% if emp.role == 'manager' %}
+                                        <span class="badge bg-warning">{{ emp.get_role_display }}</span>
+                                    {% elif emp.role == 'hr_admin' %}
+                                        <span class="badge bg-info">{{ emp.get_role_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-primary">{{ emp.get_role_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ emp.phone_number|default:"N/A" }}</td>
+                                <td>
+                                    {% if emp.is_active %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'employee_detail' emp.employee_id %}" class="btn btn-sm btn-outline-primary" title="View Profile">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    <a href="{% url 'employee_edit' emp.employee_id %}" class="btn btn-sm btn-outline-warning" title="Edit">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </a>
+                                    {% if emp.is_active %}
+                                        <form method="post" action="{% url 'employee_delete' emp.employee_id %}" style="display: inline;" 
+                                              onsubmit="return false;">
+                                            {% csrf_token %}
+                                            <button type="button" class="btn btn-sm btn-outline-danger" title="Deactivate"
+                                                    onclick="confirmDelete(this, '{{ emp.get_full_name|default:emp.user.username }}', 'deactivate')">
+                                                <i class="fas fa-user-times"></i> Deactivate
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <form method="post" action="{% url 'employee_activate' emp.employee_id %}" style="display: inline;"
+                                              onsubmit="return false;">
+                                            {% csrf_token %}
+                                            <button type="button" class="btn btn-sm btn-outline-success" title="Activate"
+                                                    onclick="confirmActivate(this, '{{ emp.get_full_name|default:emp.user.username }}')">
+                                                <i class="fas fa-user-check"></i> Activate
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const csrfToken = '{{ csrf_token }}';
+const checkInUrl = '{% url "check_in" %}';
+const checkOutUrl = '{% url "check_out" %}';
+
+// Employee-specific confirmation functions
+function confirmDelete(button, employeeName, action = 'deactivate') {
+    const form = button.closest('form');
+    
+    showConfirmation({
+        title: `${action.charAt(0).toUpperCase() + action.slice(1)} Employee`,
+        message: `Are you sure you want to ${action} ${employeeName}? This will prevent them from accessing the system.`,
+        confirmText: action.charAt(0).toUpperCase() + action.slice(1),
+        type: 'danger',
+        onConfirm: function() {
+            // Show processing notification
+            showNotification(`${action.charAt(0).toUpperCase() + action.slice(1)}ing ${employeeName}...`, 'info', 2000);
+            
+            // Submit the form after a short delay
+            setTimeout(() => {
+                form.submit();
+            }, 500);
+        }
+    });
+}
+
+function confirmActivate(button, employeeName) {
+    const form = button.closest('form');
+    
+    showConfirmation({
+        title: 'Activate Employee',
+        message: `Are you sure you want to activate ${employeeName}? This will allow them to access the system again.`,
+        confirmText: 'Activate',
+        type: 'success',
+        onConfirm: function() {
+            // Show processing notification
+            showNotification(`Activating ${employeeName}...`, 'info', 2000);
+            
+            // Submit the form after a short delay
+            setTimeout(() => {
+                form.submit();
+            }, 500);
+        }
+    });
+}
+
+// Check-in/Check-out confirmations
+function confirmCheckIn() {
+    showConfirmation({
+        title: 'Check-In Confirmation',
+        message: 'Are you sure you want to check in now? This will record your arrival time.',
+        confirmText: 'Check In',
+        type: 'success',
+        onConfirm: function() {
+            performCheckIn();
+        }
+    });
+}
+
+function confirmCheckOut() {
+    showConfirmation({
+        title: 'Check-Out Confirmation', 
+        message: 'Are you sure you want to check out now? This will record your departure time.',
+        confirmText: 'Check Out',
+        type: 'warning',
+        onConfirm: function() {
+            performCheckOut();
+        }
+    });
+}
+
+// Original check-in/check-out functions with notifications
+function performCheckIn() {
+    fetch(checkInUrl, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showNotification(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        showNotification('An error occurred during check-in.', 'danger');
+    });
+}
+
+function performCheckOut() {
+    fetch(checkOutUrl, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showNotification(data.message, 'danger');
+        }
+    })
+    .catch(error => {
+        showNotification('An error occurred during check-out.', 'danger');
+    });
+}
+</script>
+<script src="{% static 'js/hr_dashboard.js' %}"></script>
+{% endblock %}
