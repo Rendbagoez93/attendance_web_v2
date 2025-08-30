@@ -1,6 +1,6 @@
-# NovaTech Attendance Management System
+#Attendance Management System
 
-A web-based employee attendance and management system built with Django for NovaTech Corporation.
+A web-based employee attendance and management system built with Django.
 
 ## Features
 - Secure employee login/logout
@@ -67,6 +67,3 @@ attendance.v2/
 ## Customization
 - Update company branding in `static/images/` and `templates/base.html`.
 - Adjust roles and permissions in the `Employee` model.
-
-## License
-This project is for internal use at NovaTech Corporation.
